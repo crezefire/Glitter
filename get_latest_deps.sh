@@ -64,6 +64,10 @@ done
 declare -A github_repos=(
     ["google/benchmark"]="ed1bac8434b3f970a5b7de3fea8f09dc4b1773ee"
     ["google/googletest"]="dc043e1ca6bd509a92452ed54e817b6979869372"
+    ["crezefire/dimension"]="master"
+    ["crezefire/jars"]="master"
+    ["crezefire/gadget"]="master"
+    ["crezefire/oss"]="mastero"
     );
 
 readonly external_libs_folder="libs/external/"

@@ -36,6 +36,22 @@ if (GLITTER_ENABLE_TESTING)
     set_property(TARGET gtest PROPERTY FOLDER "external-libs")
 endif()
 
+set(DIMENSION_ENABLE_BENCHMARKING ON CACHE BOOL "" FORCE)
+set(DIMENSION_ENABLE_TESTING ON CACHE BOOL "" FORCE)
+add_subdirectory(external/crezefire/dimension/)
+
+set(GADGET_ENABLE_BENCHMARKING ON CACHE BOOL "" FORCE)
+set(GADGET_ENABLE_TESTING ON CACHE BOOL "" FORCE)
+add_subdirectory(external/crezefire/gadget/)
+
+set(JARS_ENABLE_BENCHMARKING ON CACHE BOOL "" FORCE)
+set(JARS_ENABLE_TESTING ON CACHE BOOL "" FORCE)
+add_subdirectory(external/crezefire/jars/)
+
+set(OSS_ENABLE_BENCHMARKING ON CACHE BOOL "" FORCE)
+set(OSS_ENABLE_TESTING ON CACHE BOOL "" FORCE)
+add_subdirectory(external/crezefire/oss/)
+
 # Internal libraries
 add_subdirectory(compile-interfaces/compile-options-private/)
 add_subdirectory(compile-interfaces/compile-options-public/)

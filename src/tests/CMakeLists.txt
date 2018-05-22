@@ -1,18 +1,18 @@
-project(tests
+project(glitter-tests
     VERSION 0.0
     LANGUAGES CXX
 )
 
-add_executable(tests
+add_executable(glitter-tests
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-add_executable(glitt::tests
+add_executable(glitt::glitter-tests
     ALIAS
-        tests
+        glitter-tests
 )
 
-target_link_libraries(tests
+target_link_libraries(glitter-tests
     INTERFACE
         glitt::compile-options-private
     PRIVATE
