@@ -7,3 +7,6 @@ if (GLITTER_ENABLE_TESTING)
     add_subdirectory(tests)
     set_property(TARGET glitter-tests PROPERTY FOLDER "tests")
 endif()
+
+add_subdirectory(samples)
+set_property(TARGET glitter-samples PROPERTY FOLDER "samples")
