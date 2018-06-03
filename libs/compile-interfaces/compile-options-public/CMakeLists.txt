@@ -29,16 +29,16 @@ install(
     TARGETS
         compile-options-public
     EXPORT
-        CompileOptionsPublicTargets
+        GlittCompileOptionsPublicTargets
 )
 
 install(
     EXPORT
-        CompileOptionsPublicTargets
+        GlittCompileOptionsPublicTargets
     FILE
-        CompileOptionsPublicTargets.cmake
+        GlittCompileOptionsPublicTargets.cmake
     NAMESPACE
         glitt::
     DESTINATION
-        lib/cmake/CompileOptionsPublicTargets
+        lib/cmake/GlittCompileOptionsPublicTargets
 )

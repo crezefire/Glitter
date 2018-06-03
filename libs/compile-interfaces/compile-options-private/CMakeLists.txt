@@ -55,16 +55,16 @@ install(
     TARGETS
         compile-options-private
     EXPORT
-        CompileOptionsPrivateTargets
+        GlittCompileOptionsPrivateTargets
 )
 
 install(
     EXPORT
-        CompileOptionsPrivateTargets
+        GlittCompileOptionsPrivateTargets
     FILE
-        CompileOptionsPrivateTargets.cmake
+        GlittCompileOptionsPrivateTargets.cmake
     NAMESPACE
         glitt::
     DESTINATION
-        lib/cmake/CompileOptionsPrivateTargets
+        lib/cmake/GlittCompileOptionsPrivateTargets
 )
