@@ -7,6 +7,7 @@
 #include <memory>
 #include <utility>
 #include <cstdint>
+#include <cstdio>
 
 namespace {
 bool ValidationLayerFound(std::uint32_t const checkCount,
@@ -18,7 +19,7 @@ bool ValidationLayerFound(std::uint32_t const checkCount,
         bool found = false;
 
         for (uint32_t j = 0; j < layer_count; j++) {
-            if (!strcmp(check_names[i], layers[j].layerName)) {
+            if (!std::strcmp(check_names[i], layers[j].layerName)) {
                 found = true;
                 break;
             }
@@ -82,7 +83,7 @@ bool HasExtensionName(VkExtensionProperties* extensions,
                       std::uint32_t instanceExtensionCount,
                       char const* extension_names) {
     for (uint32_t i = 0; i < instanceExtensionCount; i++) {
-        if (!strcmp(extension_names, extensions[i].extensionName)) { return true; }
+        if (!std::strcmp(extension_names, extensions[i].extensionName)) { return true; }
     }
 
     return false;
@@ -115,6 +116,39 @@ VkInstanceCreateInfo CreateInstanceInfo(VkApplicationInfo const& appInfo,
     createInfo.ppEnabledLayerNames     = enabledLayerNames;
 
     return createInfo;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugReportFlagsEXT flags,
+                                                   VkDebugReportObjectTypeEXT,
+                                                   std::uint64_t,
+                                                   std::size_t,
+                                                   std::int32_t,
+                                                   char const* layerPrefix,
+                                                   char const* msg,
+                                                   void*) {
+
+    std::fprintf(stderr, "VkVL: %s-%d %s", layerPrefix, flags, msg);
+
+    return VK_FALSE;
+}
+
+bool SetupDebugCallback(const VkInstance& instance) {
+    VkDebugReportCallbackEXT callback;
+    VkDebugReportCallbackCreateInfoEXT createInfo = {};
+    createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+    createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT
+                       | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+    createInfo.pfnCallback = VulkanDebugCallback;
+
+    auto const func =
+        (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+
+    if (func == nullptr) return false;
+
+    auto const allocatorPointer = nullptr;
+    auto const result           = func(instance, &createInfo, allocatorPointer, &callback);
+
+    return result == VK_SUCCESS;
 }
 
 } // namespace
@@ -174,14 +208,26 @@ gget::Error Vulkan::Init(bool const enableDebugLayer) {
     if (!platformSurfaceExtFound)
         return {"Failed to find the platform surface extension. Possible missing Vulkan driver"};
 
+    bool const debugExtensionFound = HasExtensionName(
+        instanceExtensions.get(), instanceExtensionCount, VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+    if (enableDebugLayer && !debugExtensionFound) return {"Failed to initalize debug extension"};
+
     char const* extensionNames[64] = {VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME};
 
-    auto const instanceInfo =
-        CreateInstanceInfo(appInfo, 2, extensionNames, enabledLayerCount, instanceValidationlayers);
+    if (enableDebugLayer) extensionNames[2] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
+
+    // (Debug) + Default extension + platform extension
+    auto const extensionCount = enableDebugLayer ? 3U : 2U;
+
+    auto const instanceInfo = CreateInstanceInfo(
+        appInfo, extensionCount, extensionNames, enabledLayerCount, instanceValidationlayers);
 
     VkInstance instance;
     if (vkCreateInstance(&instanceInfo, nullptr, &instance) != VK_SUCCESS)
         return {"Failed to create Vulkan Instance"};
+
+    if (enableDebugLayer && !SetupDebugCallback(instance)) return {"Failed to setup debug callback"};
 
     return gget::Error::NoError;
 }
