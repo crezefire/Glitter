@@ -1,6 +1,5 @@
 #pragma once
 
-#include <glitter/api-data.h>
 #include <gadget/error.h>
 
 namespace glitt {
