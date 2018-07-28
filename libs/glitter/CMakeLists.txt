@@ -5,7 +5,18 @@ project(glitter
 
 add_library(glitter
     STATIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/engine.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/gapi.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/vulkan/vulkan-helpers.cpp
+)
+
+source_group(src
+    REGULAR_EXPRESSION
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*
+)
+
+source_group(src\\vulkan
+    REGULAR_EXPRESSION
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/vulkan/*
 )
 
 add_library(glitt::glitter
@@ -20,12 +31,28 @@ target_include_directories(glitter
         $<INSTALL_INTERFACE:include>
 )
 
+find_package(Vulkan REQUIRED)
+
 target_link_libraries(glitter
     PRIVATE
         glitt::compile-options-private
     PUBLIC
         glitt::compile-options-public
+        Vulkan::Vulkan
+		gget::gadget
 )
+
+target_compile_definitions(glitter
+	PRIVATE
+		VK_PROTOTYPES=1
+)
+
+if (MSVC)
+    target_compile_definitions(glitter
+        PRIVATE
+			VK_USE_PLATFORM_WIN32_KHR=1
+    )
+endif()
 
 install(
     TARGETS

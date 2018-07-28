@@ -20,8 +20,8 @@ if (MSVC)
             /GR-    # Disable RTTI
             #/EH-    # Disable exception handling
             /MP     # Multi-process compilation
-            /Za     # Disable language extensions
-            /WX     # Warnings as errors
+            #/Za     # Disable language extensions
+            $<$<CONFIG:Release>:/WX>     # Warnings as errors
             /FA     # Generate asm
             /permissive-               # Strict conformance                 
             $<$<CONFIG:Release>:/Fa${PROJECT_BINARY_DIR}/asm-output/>        # Assembly location

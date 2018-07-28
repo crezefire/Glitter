@@ -52,7 +52,7 @@ ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH, RANGES_FOR, FOREACH ]
 # IncludeCategories: None
 # IncludeIsMainRegex: None
 IndentCaseLabels: false
-IndentWidth:     2
+IndentWidth:     4
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: true
 Language: Cpp
