@@ -1,8 +1,8 @@
 ---
 Language:        Cpp
 # BasedOnStyle:  LLVM
-AccessModifierOffset: 0
-AlignAfterOpenBracket: Align
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align 
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: false

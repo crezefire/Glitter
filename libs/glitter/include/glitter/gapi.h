@@ -4,16 +4,17 @@
 
 namespace glitt {
 class GAPI {
-    bool IsInitialised{false};
-
     GAPI() = default;
+    GAPI(char const* errorMessage);
 
-    public:
+    gget::Error ErrorCode;
+
+public:
     static GAPI CreateAndInit(void const* windowHandle, bool const enableDebugLayer);
 
     GAPI(const GAPI&) = delete;
     GAPI(GAPI&&)      = delete;
 
-    explicit operator bool() const { return IsInitialised; }
+    const gget::Error& GetError() const;
 };
 } // namespace glitt

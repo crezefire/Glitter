@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 
     auto gapi = glitt::GAPI::CreateAndInit(window.value().WindowsHandle, enableDebugLayer);
 
-    if (!gapi) return 0;
+    if (!gapi.GetError()) return 0;
 
     while (oss::Window::RunOSUpdateLoop())
         ;
