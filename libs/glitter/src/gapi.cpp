@@ -2,7 +2,7 @@
 #include <glitter/vulkan/vulkan-helpers.h>
 
 namespace glitt {
-GAPI GAPI::CreateAndInit(void const* windowHandle, const bool enableDebugLayer) {
+gget::ErrorValue<GAPI> GAPI::CreateAndInit(void const* windowHandle, const bool enableDebugLayer) {
 
     auto const api = Vulkan::Init(enableDebugLayer);
 

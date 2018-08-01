@@ -12,9 +12,9 @@ int main(int argc, char** argv) {
 
     auto const enableDebugLayer = true;
 
-    auto gapi = glitt::GAPI::CreateAndInit(window.value().WindowsHandle, enableDebugLayer);
+    auto [error, gapi] = glitt::GAPI::CreateAndInit(window.value().WindowsHandle, enableDebugLayer);
 
-    if (!gapi) return 0;
+    if (!error) return 0;
 
     while (oss::Window::RunOSUpdateLoop())
         ;

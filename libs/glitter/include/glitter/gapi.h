@@ -9,7 +9,7 @@ class GAPI {
     GAPI() = default;
 
     public:
-    static GAPI CreateAndInit(void const* windowHandle, bool const enableDebugLayer);
+    static gget::ErrorValue<GAPI> CreateAndInit(void const* windowHandle, bool const enableDebugLayer);
 
     GAPI(const GAPI&) = delete;
     GAPI(GAPI&&)      = delete;

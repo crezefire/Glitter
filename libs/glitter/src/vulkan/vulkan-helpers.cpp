@@ -15,10 +15,10 @@ bool ValidationLayerFound(std::uint32_t const checkCount,
                           std::uint32_t const layer_count,
                           VkLayerProperties* layers) {
 
-    for (uint32_t i = 0; i < checkCount; i++) {
+    for (std::uint32_t i = 0; i < checkCount; i++) {
         bool found = false;
 
-        for (uint32_t j = 0; j < layer_count; j++) {
+        for (std::uint32_t j = 0; j < layer_count; j++) {
             if (!std::strcmp(check_names[i], layers[j].layerName)) {
                 found = true;
                 break;
