@@ -1,19 +1,25 @@
 #pragma once
 
 #include <gadget/error.h>
+#include <glitter/api-data.h>
+
+#include <memory>
 
 namespace glitt {
-class GAPI {
-    bool IsInitialised{false};
 
+class GAPI {
     GAPI() = default;
 
-    public:
+    std::unique_ptr<GraphicsDeviceInterface> DeviceInterface;
+
+public:
+    GAPI(std::unique_ptr<GraphicsDeviceInterface> DeviceInterface);
+
     static gget::ErrorValue<GAPI> CreateAndInit(void const* windowHandle, bool const enableDebugLayer);
 
-    GAPI(const GAPI&) = delete;
+    GAPI(GAPI const&) = delete;
     GAPI(GAPI&&)      = delete;
 
-    explicit operator bool() const { return IsInitialised; }
+    ~GAPI();
 };
 } // namespace glitt

@@ -1,4 +1,5 @@
 #include <glitter/vulkan/vulkan-helpers.h>
+#include <glitter/api-data-inl.h>
 
 #include <vulkan/vulkan.h>
 
@@ -132,8 +133,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugReportFlagsEXT flags,
     return VK_FALSE;
 }
 
-bool SetupDebugCallback(const VkInstance& instance) {
-    VkDebugReportCallbackEXT callback;
+bool SetupDebugCallback(const VkInstance& instance, VkDebugReportCallbackEXT& callback) {
     VkDebugReportCallbackCreateInfoEXT createInfo = {};
     createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
     createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT
@@ -154,7 +154,7 @@ bool SetupDebugCallback(const VkInstance& instance) {
 } // namespace
 
 namespace glitt {
-gget::Error Vulkan::Init(bool const enableDebugLayer) {
+gget::ErrorValue<std::unique_ptr<GraphicsDeviceInterface>> Vulkan::Init(bool const enableDebugLayer) {
 
     auto const appInfo = CreateApplicationInfo();
 
@@ -223,13 +223,31 @@ gget::Error Vulkan::Init(bool const enableDebugLayer) {
     auto const instanceInfo = CreateInstanceInfo(
         appInfo, extensionCount, extensionNames, enabledLayerCount, instanceValidationlayers);
 
-    VkInstance instance;
-    if (vkCreateInstance(&instanceInfo, nullptr, &instance) != VK_SUCCESS)
+    auto deviceInterface = std::make_unique<VulkanDeviceInterface>();
+
+    deviceInterface->DebugLayersEnabled = enableDebugLayer;
+
+    if (vkCreateInstance(&instanceInfo, nullptr, &deviceInterface->Instance) != VK_SUCCESS)
         return {"Failed to create Vulkan Instance"};
 
-    if (enableDebugLayer && !SetupDebugCallback(instance)) return {"Failed to setup debug callback"};
+    if (enableDebugLayer && !SetupDebugCallback(deviceInterface->Instance, deviceInterface->DebugCallback))
+        return {"Failed to setup debug callback"};
 
-    return gget::Error::NoError;
+    return {gget::Error::NoError, std::move(deviceInterface)};
+}
+
+void Vulkan::Destroy(GraphicsDeviceInterface* deviceInterface) {
+
+    auto const& instance = deviceInterface->Instance;
+
+    if (deviceInterface->DebugLayersEnabled) {
+        auto const func = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(
+            instance, "vkDestroyDebugReportCallbackEXT");
+
+        if (func != nullptr) { func(instance, deviceInterface->DebugCallback, nullptr); }
+    }
+
+    vkDestroyInstance(instance, nullptr);
 }
 
 } // namespace glitt

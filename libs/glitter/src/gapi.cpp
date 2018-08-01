@@ -1,13 +1,19 @@
+#include <glitter/api-data-inl.h>
 #include <glitter/gapi.h>
 #include <glitter/vulkan/vulkan-helpers.h>
 
 namespace glitt {
-gget::ErrorValue<GAPI> GAPI::CreateAndInit(void const* windowHandle, const bool enableDebugLayer) {
 
-    auto const api = Vulkan::Init(enableDebugLayer);
+GAPI::GAPI(std::unique_ptr<GraphicsDeviceInterface> deviceInterface)
+    : DeviceInterface(std::move(deviceInterface)) {}
 
-    if (!api) return {};
+gget::ErrorValue<GAPI> GAPI::CreateAndInit(void const* windowHandle, bool const enableDebugLayer) {
+    auto [error, api] = Vulkan::Init(enableDebugLayer);
 
-    return {};
+    if (error) return {std::move(error)};
+
+    return {gget::Error::NoError, std::move(api)};
 }
+
+GAPI::~GAPI() { Vulkan::Destroy(DeviceInterface.get()); }
 } // namespace glitt
