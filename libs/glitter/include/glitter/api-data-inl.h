@@ -4,6 +4,9 @@
 
 struct VulkanDeviceInterface {
     VkInstance Instance;
-    bool DebugLayersEnabled;
+
+    bool                     DebugLayersEnabled;
     VkDebugReportCallbackEXT DebugCallback;
+
+    VkPhysicalDevice PhysicalDevice;
 };
