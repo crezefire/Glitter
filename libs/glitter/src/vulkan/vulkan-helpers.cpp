@@ -153,6 +153,37 @@ bool SetupDebugCallback(const VkInstance& instance, VkDebugReportCallbackEXT& ca
     return result == VK_SUCCESS;
 }
 
+bool IsDeviceSuitable(const VkPhysicalDevice& device) {
+
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+    return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+           deviceFeatures.geometryShader;
+}
+
+bool HasSuitableQueueFamily(const VkPhysicalDevice& device) {
+    std::uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    if (queueFamilyCount == 0) return false;
+
+    auto const queueFamilies = std::make_unique<VkQueueFamilyProperties[]>(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.get());
+
+    for (auto i = 0U; i < queueFamilyCount; ++i) {
+        auto const& currentQueue = queueFamilies[i];
+        if (currentQueue.queueCount > 0 && currentQueue.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 } // namespace
 
 namespace glitt {
@@ -241,16 +272,46 @@ gget::ErrorValue<std::unique_ptr<GraphicsDeviceInterface>>
     auto const instanceInfo = CreateInstanceInfo(
       appInfo, extensionCount, extensionNames, enabledLayerCount, instanceValidationlayers);
 
-    auto deviceInterface = std::make_unique<VulkanDeviceInterface>();
+    auto  deviceInterface = std::make_unique<VulkanDeviceInterface>();
+    auto& instance        = deviceInterface->Instance;
 
     deviceInterface->DebugLayersEnabled = enableDebugLayer;
 
-    if (vkCreateInstance(&instanceInfo, nullptr, &deviceInterface->Instance) == VK_SUCCESS)
+
+    if (vkCreateInstance(&instanceInfo, nullptr, &deviceInterface->Instance) != VK_SUCCESS)
         return {GADGET_ERMSG("Failed to create Vulkan Instance")};
 
-    if (enableDebugLayer &&
-        !SetupDebugCallback(deviceInterface->Instance, deviceInterface->DebugCallback))
+    if (enableDebugLayer && !SetupDebugCallback(instance, deviceInterface->DebugCallback))
         return {GADGET_ERMSG("Failed to setup debug callback")};
+
+    std::uint32_t deviceCount = 0;
+    {
+        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+        if (deviceCount == 0) return {GADGET_ERMSG("Failed to find a Vulkan Physical Device")};
+    }
+
+    {
+        auto const devices = std::make_unique<VkPhysicalDevice[]>(deviceCount);
+        vkEnumeratePhysicalDevices(instance, &deviceCount, devices.get());
+
+        auto foundDevice = false;
+
+        for (auto i = 0U; i < deviceCount; ++i) {
+            auto const& currentDevice = devices[i];
+
+            if (IsDeviceSuitable(currentDevice)) {
+                deviceInterface->PhysicalDevice = currentDevice;
+                foundDevice                     = true;
+                break;
+            }
+        }
+
+        if (!foundDevice) return {GADGET_ERMSG("Could not find a suitable Vulkan device")};
+    }
+
+    if (!HasSuitableQueueFamily(deviceInterface->PhysicalDevice))
+        return {GADGET_ERMSG("Couldn't find suitable queue family")};
 
     return {gget::Error::NoError, std::move(deviceInterface)};
 }
