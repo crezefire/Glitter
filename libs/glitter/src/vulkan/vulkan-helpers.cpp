@@ -345,6 +345,12 @@ gget::ErrorValue<std::unique_ptr<GraphicsDeviceInterface>>
         if (result != VK_SUCCESS) return {GADGET_ERMSG("Failed to create Vulkan logical device")};
     }
 
+    auto const queueIndex = 0U;
+    vkGetDeviceQueue(deviceInterface->LogicalDevice,
+                     queueFamilyIndex,
+                     queueIndex,
+                     &deviceInterface->GraphicsQueue);
+
     return {gget::Error::NoError, std::move(deviceInterface)};
 }
 

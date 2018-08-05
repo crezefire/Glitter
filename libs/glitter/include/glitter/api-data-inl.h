@@ -10,4 +10,6 @@ struct VulkanDeviceInterface {
 
     VkPhysicalDevice PhysicalDevice;
     VkDevice         LogicalDevice;
+
+    VkQueue GraphicsQueue;
 };
