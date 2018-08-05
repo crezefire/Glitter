@@ -9,4 +9,5 @@ struct VulkanDeviceInterface {
     VkDebugReportCallbackEXT DebugCallback;
 
     VkPhysicalDevice PhysicalDevice;
+    VkDevice         LogicalDevice;
 };

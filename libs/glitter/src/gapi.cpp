@@ -15,5 +15,7 @@ gget::ErrorValue<GAPI> GAPI::CreateAndInit(void const* windowHandle, bool const 
     return {gget::Error::NoError, std::move(api)};
 }
 
-GAPI::~GAPI() { Vulkan::Destroy(DeviceInterface.get()); }
+GAPI::~GAPI() {
+    if (DeviceInterface) Vulkan::Destroy(DeviceInterface.get());
+}
 } // namespace glitt

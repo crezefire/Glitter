@@ -165,11 +165,11 @@ bool IsDeviceSuitable(const VkPhysicalDevice& device) {
            deviceFeatures.geometryShader;
 }
 
-bool HasSuitableQueueFamily(const VkPhysicalDevice& device) {
+std::uint32_t HasSuitableQueueFamily(const VkPhysicalDevice& device) {
     std::uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
-    if (queueFamilyCount == 0) return false;
+    if (queueFamilyCount == 0) return -1;
 
     auto const queueFamilies = std::make_unique<VkQueueFamilyProperties[]>(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.get());
@@ -177,13 +177,12 @@ bool HasSuitableQueueFamily(const VkPhysicalDevice& device) {
     for (auto i = 0U; i < queueFamilyCount; ++i) {
         auto const& currentQueue = queueFamilies[i];
         if (currentQueue.queueCount > 0 && currentQueue.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            return true;
+            return i;
         }
     }
 
-    return false;
+    return -1;
 }
-
 } // namespace
 
 namespace glitt {
@@ -310,8 +309,41 @@ gget::ErrorValue<std::unique_ptr<GraphicsDeviceInterface>>
         if (!foundDevice) return {GADGET_ERMSG("Could not find a suitable Vulkan device")};
     }
 
-    if (!HasSuitableQueueFamily(deviceInterface->PhysicalDevice))
-        return {GADGET_ERMSG("Couldn't find suitable queue family")};
+    auto const physicalDevice = deviceInterface->PhysicalDevice;
+
+    auto const queueFamilyIndex = HasSuitableQueueFamily(physicalDevice);
+
+    if (queueFamilyIndex < 0) return {GADGET_ERMSG("Couldn't find suitable queue family")};
+
+    {
+        auto const queuePriority = 1.0f;
+
+        VkDeviceQueueCreateInfo queueCreateInfo = {};
+        queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex        = queueFamilyIndex;
+        queueCreateInfo.queueCount              = 1;
+        queueCreateInfo.pQueuePriorities        = &queuePriority;
+
+        VkPhysicalDeviceFeatures deviceFeatures = {};
+
+        VkDeviceCreateInfo createInfo    = {};
+        createInfo.sType                 = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pQueueCreateInfos     = &queueCreateInfo;
+        createInfo.queueCreateInfoCount  = 1;
+        createInfo.pEnabledFeatures      = &deviceFeatures;
+        createInfo.enabledExtensionCount = 0;
+
+        if (enableDebugLayer) {
+            createInfo.enabledLayerCount   = validationLayerCount;
+            createInfo.ppEnabledLayerNames = instanceValidationlayers;
+        } else
+            createInfo.enabledLayerCount = 0;
+
+        auto const result =
+          vkCreateDevice(physicalDevice, &createInfo, nullptr, &deviceInterface->LogicalDevice);
+
+        if (result != VK_SUCCESS) return {GADGET_ERMSG("Failed to create Vulkan logical device")};
+    }
 
     return {gget::Error::NoError, std::move(deviceInterface)};
 }
@@ -327,6 +359,7 @@ void Vulkan::Destroy(GraphicsDeviceInterface* deviceInterface) {
         if (func != nullptr) { func(instance, deviceInterface->DebugCallback, nullptr); }
     }
 
+    vkDestroyDevice(deviceInterface->LogicalDevice, nullptr);
     vkDestroyInstance(instance, nullptr);
 }
 
